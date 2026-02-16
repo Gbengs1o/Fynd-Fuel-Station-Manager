@@ -1,7 +1,11 @@
 .hero {
-  padding: 6rem 0;
+  padding: 6rem 0 8rem;
+  /* Increased bottom padding */
   overflow: hidden;
 }
+
+/* ... existing code ... */
+
 
 .heroContainer {
   display: grid;
@@ -225,6 +229,5 @@
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--card-bg);
-  margin-top: -2rem;
-  /* Pull up to join hero if needed */
+  /* margin-top: -2rem; Removed to fix button visibility */
 }

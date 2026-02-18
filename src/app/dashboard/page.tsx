@@ -18,6 +18,9 @@ import MobileQuickUpdate from '@/components/dashboard/overview/MobileQuickUpdate
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
+import QuickPriceAction from '@/components/dashboard/overview/QuickPriceAction';
+import RevenueProjection from '@/components/dashboard/overview/RevenueProjection';
+
 export default function DashboardOverview() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -137,7 +140,11 @@ export default function DashboardOverview() {
                 };
             });
 
-            const displayViews = analytics?.[0]?.profile_views || 0;
+            const analyticsData = analytics as any[] | null;
+            const todayAnalytics = analyticsData?.[0];
+
+            // Fallback to yesterday if today is empty (for demo continuity)
+            const displayViews = todayAnalytics?.profile_views || analyticsData?.[1]?.profile_views || 0;
 
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -267,9 +274,13 @@ export default function DashboardOverview() {
                                 <div className={styles.statIcon} style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
                                     <Droplet size={24} />
                                 </div>
-                                <div className={styles.statLabel}>PMS Price</div>
-                                <div className={styles.statValue}>₦{station?.price_pms || 645}</div>
-                                <div className={styles.statChange} style={{ color: 'var(--text-secondary)' }}>Updated today</div>
+                                <div className={styles.statLabel}>PMS Price (Petrol)</div>
+                                <QuickPriceAction fuelType="PMS" initialPrice={station?.price_pms || 645} />
+                                <div className={styles.statChange} style={{ color: 'var(--text-secondary)' }}>Click to quick-update</div>
+                            </motion.div>
+
+                            <motion.div variants={itemVars}>
+                                <RevenueProjection todayVisits={displayViews} price={station?.price_pms || 645} />
                             </motion.div>
                         </div>
 
@@ -299,8 +310,44 @@ export default function DashboardOverview() {
 
                         <motion.div variants={itemVars} className={styles.recentReports}>
                             <div className={styles.sectionHeader}>
-                                <h2>Active Alerts</h2>
+                                <motion.h2
+                                    animate={{
+                                        color: priceDiff > 0 ? ['#fbbf24', '#fff'] : '#fff'
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
+                                >
+                                    Smart Recommendations
+                                </motion.h2>
                             </div>
+
+                            {priceDiff > 0 ? (
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className={`${styles.alertItem} ${styles.recommendation}`}
+                                    style={{ background: 'rgba(251, 191, 36, 0.1)', border: '1px solid #fbbf24' }}
+                                >
+                                    <TrendingUp size={20} color="#fbbf24" />
+                                    <div>
+                                        <strong style={{ color: '#fbbf24' }}>Price Opportunity</strong>
+                                        <p>You are ₦{Math.round(priceDiff)} above average. Lowering by ₦5 could increase visits by ~12%.</p>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className={`${styles.alertItem} ${styles.recommendation}`}
+                                    style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e' }}
+                                >
+                                    <Award size={20} color="#22c55e" />
+                                    <div>
+                                        <strong style={{ color: '#22c55e' }}>Highly Competitive</strong>
+                                        <p>You have the best price in this area. Maintain this to build driver loyalty.</p>
+                                    </div>
+                                </motion.div>
+                            )}
+
                             {station?.is_out_of_stock ? (
                                 <div className={styles.alertItem} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444' }}>
                                     <AlertTriangle size={20} color="#ef4444" />
@@ -318,11 +365,12 @@ export default function DashboardOverview() {
                                     </div>
                                 </div>
                             )}
+
                             <div className={styles.alertItem}>
                                 <Award size={20} color="var(--primary)" />
                                 <div>
-                                    <strong>Verification Points</strong>
-                                    <p>You need 350 more pts for Gold Badge.</p>
+                                    <strong>Peak Traffic Forecast</strong>
+                                    <p>Heavy traffic expected at {peakHourLabel}. Prepare pumps.</p>
                                 </div>
                             </div>
                         </motion.div>

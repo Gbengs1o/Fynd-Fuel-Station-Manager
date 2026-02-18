@@ -88,3 +88,54 @@ export async function getStationDetails(stationId: number) {
         manager: manager || null
     };
 }
+
+export async function updateSinglePrice(fuelType: string, newPrice: number) {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Unauthorized');
+
+    // Get manager's station
+    const { data: profile } = await supabase
+        .from('manager_profiles')
+        .select('station_id')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile?.station_id) throw new Error('No station associated');
+
+    const stationId = profile.station_id;
+    const updateKey = `price_${fuelType.toLowerCase()}`;
+
+    // Fetch old prices for logging
+    const { data: oldStation } = await supabase
+        .from('stations')
+        .select(updateKey)
+        .eq('id', stationId)
+        .single();
+
+    // Update station
+    const { error: updateError } = await supabase
+        .from('stations')
+        .update({
+            [updateKey]: newPrice,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', stationId);
+
+    if (updateError) throw updateError;
+
+    // Log changes
+    await supabase.from('price_logs').insert({
+        station_id: stationId,
+        fuel_type: fuelType.toLowerCase(),
+        old_price: (oldStation as any)?.[updateKey],
+        new_price: newPrice,
+        updated_by: user.id
+    });
+
+    revalidatePath('/dashboard/pricing');
+    revalidatePath('/dashboard');
+
+    return { success: true };
+}

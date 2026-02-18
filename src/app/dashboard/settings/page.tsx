@@ -47,7 +47,7 @@ export default async function SettingsPage() {
                         <p>Update your personal contact information.</p>
                     </div>
 
-                    <form action={updateManagerProfile} style={{ display: 'grid', gap: '16px' }}>
+                    <form action={updateManagerProfile as any} style={{ display: 'grid', gap: '16px' }}>
                         <div style={{ display: 'grid', gap: '8px' }}>
                             <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Full Name</label>
                             <input

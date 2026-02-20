@@ -8,7 +8,8 @@ import {
     Droplet,
     Activity,
     AlertTriangle,
-    Award
+    Award,
+    Rocket
 } from 'lucide-react';
 import CompetitorWatch from '@/components/dashboard/overview/CompetitorWatch';
 import FeedbackSnapshot from '@/components/dashboard/overview/FeedbackSnapshot';
@@ -20,6 +21,9 @@ import { useEffect, useState } from 'react';
 
 import QuickPriceAction from '@/components/dashboard/overview/QuickPriceAction';
 import RevenueProjection from '@/components/dashboard/overview/RevenueProjection';
+import { getActivePromotion } from './promotions/actions';
+import ActivePromotionCard from './promotions/ActivePromotionCard';
+import Link from 'next/link';
 
 export default function DashboardOverview() {
     const [data, setData] = useState<any>(null);
@@ -169,6 +173,8 @@ export default function DashboardOverview() {
                 ? `${Number(peakHour24) % 12 || 12}${Number(peakHour24) >= 12 ? 'PM' : 'AM'}`
                 : '4PM';
 
+            const activePromotion = await getActivePromotion(station?.id || 0);
+
             setData({
                 station,
                 profile,
@@ -180,7 +186,8 @@ export default function DashboardOverview() {
                 priceDiff,
                 trendData,
                 displayViews,
-                peakHourLabel
+                peakHourLabel,
+                activePromotion
             });
             setLoading(false);
         }
@@ -201,7 +208,8 @@ export default function DashboardOverview() {
         priceDiff,
         trendData,
         displayViews,
-        peakHourLabel
+        peakHourLabel,
+        activePromotion
     } = data;
 
     const containerVars = {
@@ -282,6 +290,12 @@ export default function DashboardOverview() {
                             <motion.div variants={itemVars}>
                                 <RevenueProjection todayVisits={displayViews} price={station?.price_pms || 645} />
                             </motion.div>
+
+                            {activePromotion && (
+                                <motion.div variants={itemVars}>
+                                    <ActivePromotionCard promotion={activePromotion} />
+                                </motion.div>
+                            )}
                         </div>
 
                         {/* Module Snapshots */}
@@ -346,6 +360,27 @@ export default function DashboardOverview() {
                                         <p>You have the best price in this area. Maintain this to build driver loyalty.</p>
                                     </div>
                                 </motion.div>
+                            )}
+
+                            {!activePromotion && (
+                                <Link href="/dashboard/promotions" style={{ textDecoration: 'none' }}>
+                                    <motion.div
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={styles.alertItem}
+                                        style={{
+                                            background: 'linear-gradient(90deg, rgba(155, 89, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
+                                            border: '1px solid var(--primary)',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <Rocket size={20} color="var(--primary)" />
+                                        <div>
+                                            <strong style={{ color: 'var(--primary)' }}>Boost Visibility</strong>
+                                            <p>Increase visits by up to 40% with a 2-hour Flash Sale.</p>
+                                        </div>
+                                    </motion.div>
+                                </Link>
                             )}
 
                             {station?.is_out_of_stock ? (

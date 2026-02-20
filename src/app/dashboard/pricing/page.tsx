@@ -79,10 +79,12 @@ export default async function PricingPage() {
     // Mock data if no history yet
     const mockChartData = [
         { date: '2026-01-15', price: 620 },
-        { date: '2026-01-22', price: 615 },
-        { date: '2026-01-30', price: 630 },
-        { date: '2026-02-05', price: 625 },
-        { date: '2026-02-14', price: station?.price_pms || 650 },
+        { date: '2026-01-20', price: 645 },
+        { date: '2026-01-25', price: 630 },
+        { date: '2026-02-01', price: 655 },
+        { date: '2026-02-08', price: 640 },
+        { date: '2026-02-15', price: 660 },
+        { date: '2026-02-20', price: station?.price_pms || 650 },
     ];
 
     return (
